@@ -29,9 +29,7 @@ When launching `rtabmap_ros`'s nodes, if you have the error `error while loading
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/ros/noetic/lib/x86_64-linux-gnu
 ```
 
-### Docker
 
-* Go to [docker](https://github.com/introlab/rtabmap_ros/tree/master/docker) directory for an example.
 
 
 ## Build from source
@@ -94,13 +92,13 @@ This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Ca
 =======
 Quick start
 *Generating the position data from 3d detections
-
+```
 1.python shuzu.py
-
+```
 *Visualizing the triangle
-
+```
 2.python connect6.py
-
+```
 4、Execute  Relocation
 =======
 ### Run the localizer
