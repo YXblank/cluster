@@ -6,7 +6,7 @@ We first drive robot to establish the surroundings. During the mapping process,
  
 Then the robot randomly locates at a position on the map, conducts an environmental scan of the location and performs matching.
 
-1.Execute rtabmap_ros
+   1.Execute mapping
 =======
 If you have any other mapping method, it's ok
 RTAB-Map's ROS package.
@@ -16,7 +16,7 @@ For more information, demos and tutorials about this package, visit [rtabmap_ros
 For the RTAB-Map libraries and standalone application, visit [RTAB-Map's home page](http://introlab.github.io/rtabmap) or [RTAB-Map's wiki](https://github.com/rtabmap).
 
 
-## ROS distribution 
+
 RTAB-Map is released as binaries in the ROS distribution.
 
 ```bash
@@ -32,7 +32,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/ros/noetic/lib/x86_64-linux-gnu
 
 
 
-## Build from source
+Quick Start
 This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Catkin build).
 
 * The next instructions assume that you have set up your ROS workspace using this [tutorial](http://wiki.ros.org/catkin/Tutorials/create_a_workspace). The workspace path is `~/catkin_ws` and your `~/.bashrc` contains:
@@ -83,28 +83,36 @@ This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Ca
 2、Execute 3D detections
 =======
 1. Quick start
+
    source devel/setup.bash
    roslaunch gsm_node scenenn_dataset.launch bag_file:=/home/3ddetections/src/test.bag 
-   catkin build mask_rcnn_ros depth_segmentation gsm_node global_segment_map 
+   catkin build mask_rcnn_ros depth_segmentation gsm_node global_segment_map
+  
 
 3、Execute  Clustering Triangle
 =======
 Quick start
 *Generating the position data xy.txt from 3d detections
 ```
+python train.py
+python  TransformerEncoderLayer.py
 python shuzu.py
+python word2vectors.py
 ```
 *Visualizing the triangle
 ```
+Execute visualizer.cc
+
 python bound7.py
 python connect6.py
 
 ```
-4、Execute  Relocation
+4、Execute  matching
 =======
 ### Run the localizer
 Once you get your pcd map and configuration ready, run the localizer with:
 
+Execute map_loader.cpp
 
 ```bash
 # open a roscore
