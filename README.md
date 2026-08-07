@@ -83,31 +83,13 @@ This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Ca
         * Add `-DRTABMAP_SYNC_MULTI_RGBD=ON` to `catkin_make` if you plan to use multiple cameras.
         * Add `-DRTABMAP_SYNC_USER_DATA=ON` to `catkin_make` if you plan to use user data synchronized topics.
 
-## Build from source for Nvidia Jetson
- * For **Jetpack 4** (Ubuntu 18.04 with ROS Melodic), see this [post](https://github.com/introlab/rtabmap/issues/427#issuecomment-608052821).
- * For **Jetpack 3** (Ubuntu 16.04 with ROS Kinetic), see this [post](https://github.com/introlab/rtabmap_ros/issues/655).
+二、Execute 3D detections
+=======
+1. Quick start
+   source devel/setup.bash
+   roslaunch gsm_node scenenn_dataset.launch bag_file:=/home/3ddetections/src/test.bag 
+   catkin build mask_rcnn_ros depth_segmentation gsm_node global_segment_map 
 
-
-### Update to new version 
-
-```bash
-###########
-# rtabmap
-###########
-cd rtabmap
-git pull origin master
-cd build
-make
-make install
-# Do "sudo make install" if you installed rtabmap in "/usr/local"
-
-###########
-# rtabmap_ros
-###########
-roscd rtabmap_ros
-git pull origin master
-roscd
-cd ..
-catkin_make -j1 --pkg rtabmap_ros
-```
-
+三、Execute  Clustering Triangle
+=======
+Quick start
