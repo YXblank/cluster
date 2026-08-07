@@ -100,3 +100,18 @@ Quick start
 
 4、Execute  Relocation
 =======
+### Run the localizer
+Once you get your pcd map and configuration ready, run the localizer with:
+
+
+```bash
+# open a roscore
+roscore
+# in other terminal
+cd catkin_ws
+source devel/setup.bash
+# use rosbag sim time if you are playing a rosbag!!!
+rosparam set use_sim_time true
+# launch the ndt_localizer node
+roslaunch ndt_localizer ndt_localizer.launch
+```
