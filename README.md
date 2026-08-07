@@ -13,7 +13,7 @@ RTAB-Map's ROS package.
 
 For more information, demos and tutorials about this package, visit [rtabmap_ros](http://wiki.ros.org/rtabmap_ros) page on ROS wiki.
 
-For the RTAB-Map libraries and standalone application, visit [RTAB-Map's home page](http://introlab.github.io/rtabmap) or [RTAB-Map's wiki](https://github.com/introlab/rtabmap/wiki).
+For the RTAB-Map libraries and standalone application, visit [RTAB-Map's home page](http://introlab.github.io/rtabmap) or [RTAB-Map's wiki](https://github.com/rtabmap).
 
 
 ## ROS distribution 
@@ -57,12 +57,11 @@ This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Ca
 
     * [GTSAM](https://gtsam.org/get_started/): Install via PPA to avoid building from source. If you install from source, make sure to build with `cmake  -DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF -DGTSAM_USE_SYSTEM_EIGEN=ON`.
     
-    * [libpointmatcher](https://github.com/ethz-asl/libpointmatcher): **Recommended** if you are going to use lidars. Follow their [instructions](https://github.com/ethz-asl/libpointmatcher#quick-start) to install. Should be alread installed by `ros-$ROS_DISTRO-libpointmatcher`.
-
+    
 2. Install RTAB-Map standalone libraries. **Do not clone in your Catkin workspace**.
     ```bash
     cd ~
-    git clone https://github.com/introlab/rtabmap.git rtabmap
+    git clone https://github.com/rtabmap.git rtabmap
     cd rtabmap/build
     cmake ..  [<---double dots included]
     make -j6
@@ -73,7 +72,7 @@ This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Ca
  
     ```bash
     cd ~/catkin_ws
-    git clone https://github.com/introlab/rtabmap_ros.git src/rtabmap_ros
+    git clone https://github.com/rtabmap_ros.git src/rtabmap_ros
     catkin_make -j4
     ```
     * Use `catkin_make -j1` if compilation requires more RAM than you have (e.g., some files require up to ~2 GB to build depending on gcc version).
