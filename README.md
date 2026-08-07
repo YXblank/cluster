@@ -6,9 +6,9 @@ We first drive robot to establish the surroundings. During the mapping process,
  
 Then the robot randomly locates at a position on the map, conducts an environmental scan of the location and performs matching.
 
-rtabmap_ros
+一.Execute rtabmap_ros
 =======
-
+If you have any other mapping method, it's ok
 RTAB-Map's ROS package.
 
 For more information, demos and tutorials about this package, visit [rtabmap_ros](http://wiki.ros.org/rtabmap_ros) page on ROS wiki.
