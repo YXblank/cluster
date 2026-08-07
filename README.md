@@ -6,7 +6,7 @@ We first drive robot to establish the surroundings. During the mapping process,
  
 Then the robot randomly locates at a position on the map, conducts an environmental scan of the location and performs matching.
 
-一.Execute rtabmap_ros
+1.Execute rtabmap_ros
 =======
 If you have any other mapping method, it's ok
 RTAB-Map's ROS package.
@@ -83,13 +83,20 @@ This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Ca
         * Add `-DRTABMAP_SYNC_MULTI_RGBD=ON` to `catkin_make` if you plan to use multiple cameras.
         * Add `-DRTABMAP_SYNC_USER_DATA=ON` to `catkin_make` if you plan to use user data synchronized topics.
 
-二、Execute 3D detections
+2、Execute 3D detections
 =======
 1. Quick start
    source devel/setup.bash
    roslaunch gsm_node scenenn_dataset.launch bag_file:=/home/3ddetections/src/test.bag 
    catkin build mask_rcnn_ros depth_segmentation gsm_node global_segment_map 
 
-三、Execute  Clustering Triangle
+3、Execute  Clustering Triangle
 =======
 Quick start
+*Generating the position data from 3d detections
+1.python shuzu.py
+*Visualizing the triangle
+2.python connect6.py
+
+4、Execute  Relocation
+=======
