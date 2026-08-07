@@ -94,8 +94,11 @@ This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Ca
 =======
 Quick start
 *Generating the position data from 3d detections
+
 1.python shuzu.py
+
 *Visualizing the triangle
+
 2.python connect6.py
 
 4、Execute  Relocation
