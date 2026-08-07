@@ -8,16 +8,8 @@ Then the robot randomly locates at a position on the map, conducts an environmen
 
    1.Execute mapping
 =======
-If you have any other mapping method, it's ok
-RTAB-Map's ROS package.
+If you have any other mapping method, it's ok to run your own slam
 
-For more information, demos and tutorials about this package, visit [rtabmap_ros](http://wiki.ros.org/rtabmap_ros) page on ROS wiki.
-
-For the RTAB-Map libraries and standalone application, visit [RTAB-Map's home page](http://introlab.github.io/rtabmap) or [RTAB-Map's wiki](https://github.com/rtabmap).
-
-
-
-RTAB-Map is released as binaries in the ROS distribution.
 
 ```bash
 sudo apt install ros-$ROS_DISTRO-rtabmap-ros
@@ -83,11 +75,11 @@ This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Ca
 2、Execute 3D detections
 =======
 1. Quick start
-
+```
    source devel/setup.bash
    roslaunch gsm_node scenenn_dataset.launch bag_file:=/home/3ddetections/src/test.bag 
    catkin build mask_rcnn_ros depth_segmentation gsm_node global_segment_map
-  
+  ```
 
 3、Execute  Clustering Triangle
 =======
