@@ -1,28 +1,4 @@
-## A clean and simple NDT localizer
 
-This repo modified from Autoware lidar_localizer module. Unlike the module in Autoware with haveily dependency on a lot of packages(you need compile all the packages in Autoware project), this repo is clean, simple and with no dependencies. All you need is ROS, and a pcd file(the point cloud map). 
-
-Let's start our lidar-based localization learning with this simple repo!
-
-
-## Localization in a pointcloud map(pcd)
-![](cfgs/ndt_result.gif)
-
-A demo video on MulRan dataset:
-
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/qhqDmmO7c4c/0.jpg)](https://www.youtube.com/watch?v=qhqDmmO7c4c)
-
-## How to use
-
-### Prepare you pcd map and rosbag
-
-You can reproduce my blog [基于NDT的自动驾驶高精度定位和ROS项目实战](https://blog.csdn.net/AdamShan/article/details/106739856?spm=1001.2014.3001.5501) and [使用SC-LEGO-LOAM进行较大规模点云地图构建和闭环优化](https://blog.csdn.net/AdamShan/article/details/106589633?spm=1001.2014.3001.5501) to use Mulran dataset to build your pcd map and produce the pointcloud data. Unfortunately, the blog is written with Chinese, if you can not read Chinese blog and want to reproduce the project demo, use the link below(Baidu disk) to download the pcd map and rosbag:
-
-link: https://pan.baidu.com/s/1hZ0VuQCy4KX3lHUTFdVeww  passward: r7fl
-
-![](cfgs/4.png)
-
-> The KAIST02-small.bag is not the whole KAIST02 dataset, because the rosbag do not compress data, the whole KAIST02 rosbag is too large. So I use the first 81 seconds of the KAIST02 dataset to make this small rosbag.
 
 Put the pcd data to the map folder:
 
@@ -94,75 +70,8 @@ rosparam set use_sim_time true
 roslaunch ndt_localizer ndt_localizer.launch
 ```
 
-wait a few seconds for loading map, then you can see your pcd map in rviz like this:
-
-![](cfgs/sample_img_1.png)
-
-give a init pose of current vehicle with 2D Pose Estimate in the rviz:
-
-![](cfgs/sample_img3.png)
 
 
-This operation will send a init pose to topic `/initialpose`.
-
-play the rosbag:
-
-```bash
-rosbag play KAIST02-small.bag --clock
-```
-
-Then you will see the localization result:
-
-![](cfgs/sample_img2.png)
-
-The final localization msg will send to `/ndt_pose` topic:
-
-```proto
----
-header: 
-  seq: 1867
-  stamp: 
-    secs: 1566536121
-    nsecs: 251423898
-  frame_id: "map"
-pose: 
-  position: 
-    x: -94.8022766113
-    y: 544.097351074
-    z: 42.5747337341
-  orientation: 
-    x: 0.0243843578881
-    y: 0.0533175268768
-    z: -0.702325920272
-    w: 0.709437048124
----
-```
-
-The localizer also publish a tf of `base_link` to `map`:
-
-```
----
-transforms: 
-  - 
-    header: 
-      seq: 0
-      stamp: 
-        secs: 1566536121
-        nsecs: 251423898
-      frame_id: "map"
-    child_frame_id: "base_link"
-    transform: 
-      translation: 
-        x: -94.8022766113
-        y: 544.097351074
-        z: 42.5747337341
-      rotation: 
-        x: 0.0243843578881
-        y: 0.0533175268768
-        z: -0.702325920272
-        w: 0.709437048124
-```
 
 
-### Want to know more detail?
-You can follow my blog series in CSDN (Chinese): https://blog.csdn.net/adamshan
+
