@@ -1,119 +1,51 @@
-The location procedure is based on 'scene' and 'unknow' repositories.
+# SSG Core — executable reference implementation
 
-We first drive robot to establish the surroundings. During the mapping process,
+This package is a **revised extension of `cluster_repro/core.py`**, not identical to it. It separates semantic and structural layers, uses connected components of the retained graph, includes nearest-cluster links for isolated nodes, supports same-code inter-cluster links, and exposes a CLI for registered metric-depth inputs, graph matching and PnP.
 
- recognition is carried out to generate semantic relationships(xy.txt). 
- 
-Then the robot randomly locates at a position on the map, conducts an environmental scan of the location and performs matching.
 
-   1.Execute mapping
-=======
-If you have any other mapping method, it's ok to run your own slam
 
+
+
+## Install and test
 
 ```bash
-sudo apt install ros-$ROS_DISTRO-rtabmap-ros
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m unittest discover -s tests -v
 ```
 
-When launching `rtabmap_ros`'s nodes, if you have the error `error while loading shared libraries...`, try `ldconfig` or add the next line at the end of your `~/.bashrc` to fix it:
-    
-```bash
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/ros/noetic/lib/x86_64-linux-gnu
-```
+## Real input format
 
+Create an NPZ containing arrays registered to the same undistorted image:
 
+- `depth`: HxW metric optical-axis depth in metres
+- `K`: 3x3 camera intrinsic matrix
+- `instances`: HxW instance IDs; 0 is background
+- `categories`: HxW integer semantic class IDs
+- `patches`: HxW continuous surface-patch IDs; 0 is background
 
-
-Quick Start
-This section shows how to install RTAB-Map ros-pkg on **ROS Melodic/Noetic** (Catkin build).
-
-* The next instructions assume that you have set up your ROS workspace using this [tutorial](http://wiki.ros.org/catkin/Tutorials/create_a_workspace). The workspace path is `~/catkin_ws` and your `~/.bashrc` contains:
- 
-    ```bash
-    $ source /opt/ros/$ROS_DISTRO/setup.bash
-    $ source ~/catkin_ws/devel/setup.bash
-    ```
-
- 0. Required dependencies
-     * The easiest way to get all them (Qt, PCL, VTK, OpenCV, ...) is to install/uninstall rtabmap binaries:
-          ```bash
-          sudo apt install ros-$ROS_DISTRO-rtabmap ros-$ROS_DISTRO-rtabmap-ros
-          sudo apt remove ros-$ROS_DISTRO-rtabmap ros-$ROS_DISTRO-rtabmap-ros
-          ```
- 
- 1. Optional dependencies
-     * If you want SURF/SIFT on Melodic/Noetic, you have to build [OpenCV]([OpenCV](http://opencv.org/)) from source to have access to *xfeatures2d* and *nonfree* modules (note that SIFT is not in *nonfree* anymore since OpenCV 4.4.0). Install it in `/usr/local` (default) and rtabmap library should link with it instead of the one installed in ROS. 
-         * On Melodic/Noetic, build from source with *xfeatures2d* module (and *nonfree* module if needed) the same OpenCV version already installed on the system. You will then avoid breaking `cv_bridge` with `rtabmap_ros`. If you want to install a more recent OpenCV version, I recommend to uninstall `libopencv*` libraries (with all ros packages depending on it) and rebuild all those ros packages in your catkin workspace (to make sure `cv_bridge` is linked on the OpenCV version you just compiled).
-  
-    * [g2o](https://github.com/RainerKuemmerle/g2o): Should be already installed by `ros-$ROS_DISTRO-libg2o`.
-
-    * [GTSAM](https://gtsam.org/get_started/): Install via PPA to avoid building from source. If you install from source, make sure to build with `cmake  -DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF -DGTSAM_USE_SYSTEM_EIGEN=ON`.
-    
-    
-2. Install RTAB-Map standalone libraries. **Do not clone in your Catkin workspace**.
-    ```bash
-    cd ~
-    git clone https://github.com/rtabmap.git rtabmap
-    cd rtabmap/build
-    cmake ..  [<---double dots included]
-    make -j6
-    sudo make install
-    ```
-
-3. Install RTAB-Map ros-pkg in your src folder of your Catkin workspace.
- 
-    ```bash
-    cd ~/catkin_ws
-    git clone https://github.com/rtabmap_ros.git src/rtabmap_ros
-    catkin_make -j4
-    ```
-    * Use `catkin_make -j1` if compilation requires more RAM than you have (e.g., some files require up to ~2 GB to build depending on gcc version).
-    * Options:
-        * Add `-DRTABMAP_SYNC_MULTI_RGBD=ON` to `catkin_make` if you plan to use multiple cameras.
-        * Add `-DRTABMAP_SYNC_USER_DATA=ON` to `catkin_make` if you plan to use user data synchronized topics.
-
-2、Execute 3D detections
-=======
-1. Quick start
-```
-   source devel/setup.bash
-   roslaunch gsm_node scenenn_dataset.launch bag_file:=/home/3ddetections/src/test.bag 
-   catkin build mask_rcnn_ros depth_segmentation gsm_node global_segment_map
-  ```
-
-3、Execute  Clustering Triangle
-=======
-Quick start
-*Generating the position data xy.txt from 3d detections
-```
-python train.py
-python  TransformerEncoderLayer.py
-python shuzu.py
-python word2vectors.py
-```
-*Visualizing the triangle
-```
-Execute visualizer.cc
-
-python bound7.py
-python connect6.py
-
-```
-4、Execute  matching
-=======
-### Run the localizer
-Once you get your pcd map and configuration ready, run the localizer with:
-
-Execute map_loader.cpp
+The instance map must truly be instance-level. A semantic-only ADE20K label map is not an instance map. `patches` must come from a documented depth/geometry surface segmentation algorithm; this package estimates patch planes and boundary tangents, it does not create the patches.
 
 ```bash
-# open a roscore
-roscore
-# in other terminal
-cd catkin_ws
-source devel/setup.bash
-# use rosbag sim time if you are playing a rosbag!!!
-rosparam set use_sim_time true
-# launch the ndt_localizer node
-roslaunch ndt_localizer ndt_localizer.launch
+python cli.py extract frame.npz query_nodes.json
 ```
+
+For a reference map, prepare JSON containing a list of Node objects with fields `xyz`, `uv`, `layer`, `category`, `sign`, `node_id`. `xyz` must be in the common reference-map frame; query `xyz` must be in the query-camera frame and `uv` the observed region centroid in pixels. The reference map must already be multi-view fused into a common coordinate frame.
+
+```bash
+python cli.py match query_nodes.json reference_nodes.json --dc 3 --T 0.85 --h 12 --threshold 0.5 --out matches.json
+python cli.py localize query_nodes.json reference_nodes.json K.txt --matches matches.json --out pose.json
+```
+
+`pose.json` reports `T_cw` (world/map to camera). This is centroid-based PnP. Since region centroids need not be identical physical points, inspect inlier count and reprojection residuals on real data. It is not ORB-SLAM3 BA.
+
+## Equation mapping
+
+- Eq. (3): `signed_dihedral`; `extract_structural_nodes` estimates patch normals and shared-boundary tangent from supplied patch labels. Normal/tangent sign convention must be calibrated consistently.
+- Eq. (6): `triangle_descriptor`, `triangle_discrepancy`, `triangle_similarity`; descriptor stores three normalized edge lengths followed by three internal angles (radians).
+- Algorithm 1: `hierarchical_match`; semantic and structural layers are matched separately; compatible triangles are exhaustively searched within clusters; top-h candidates are retained; one-to-one node assignment is applied; adjacent-cluster local refinement uses cross-cluster distance consistency.
+
+
+
+
