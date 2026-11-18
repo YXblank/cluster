@@ -1,0 +1,5 @@
+[
+  {"xyz": [0.0, 0.0, 2.0], "uv": [320.0, 240.0], "layer": "semantic", "category": 1, "sign": 0, "node_id": 0},
+  {"xyz": [1.0, 0.0, 2.0], "uv": [400.0, 240.0], "layer": "semantic", "category": 2, "sign": 0, "node_id": 1},
+  {"xyz": [0.0, 1.0, 2.0], "uv": [320.0, 320.0], "layer": "semantic", "category": 3, "sign": 0, "node_id": 2}
+]
