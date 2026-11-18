@@ -1,0 +1,9 @@
+test_angle (test_core.Test.test_angle) ... ok
+test_extract (test_core.Test.test_extract) ... ok
+test_triangle (test_core.Test.test_triangle) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+OK
+Synthetic pose test passed
