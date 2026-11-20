@@ -23,7 +23,30 @@ class Node:
     @property
     def code(self):
         return (self.layer, int(self.category), int(self.sign) if self.layer == 'structural' else 0)
+    def node_compatible(a, b, semantic_mode="soft"):
+        if a.layer != b.layer:
+            return False
 
+        if a.layer == "semantic":
+            return a.category == b.category
+
+        if a.sign != b.sign:
+                return False
+
+        if semantic_mode == "hard":
+            return a.category == b.category
+
+        return True
+
+
+    def semantic_prior(a, b, alpha=0.15):
+        if a.layer != "structural":
+            return 1.0
+
+        if a.category >= 0 and a.category == b.category:
+            return 1.0
+
+        return 1.0 - alpha
 @dataclass
 class Triangle:
     vertices: tuple[int,int,int]
@@ -155,7 +178,7 @@ def triangle_similarity(d1,d2,lambda_angle=1.,lambda_ratio=1.):
     return float(np.exp(-lambda_angle*da-lambda_ratio*dr))
 
 
-def _cluster_graph(nodes,dc,neighbor_ratio):
+def _cluster_graph(nodes,dc,neighbor_ratio, semantic_mode="soft"):
     xyz=np.asarray([n.xyz for n in nodes],float); N=len(nodes)
     if N==0:return xyz,[],{},set()
     dist=np.linalg.norm(xyz[:,None,:]-xyz[None,:,:],axis=2); np.fill_diagonal(dist,np.inf)
@@ -188,7 +211,9 @@ def _cluster_graph(nodes,dc,neighbor_ratio):
         for cj in range(ci+1,len(comps)):
             c2=comps[cj]; pairs=[(dist[a,b],a,b) for a in c1 for b in c2]
             d,a,b=min(pairs)
-            if d<2*dc and nodes[a].code==nodes[b].code:
+            if d < 2 * dc and node_compatible(
+                nodes[a], nodes[b], semantic_mode
+            ):
                 inter[ci].add(cj); inter[cj].add(ci); edges.add(tuple(sorted((a,b))))
     return xyz,comps,inter,edges
 
@@ -205,8 +230,15 @@ def _triangles(nodes,clusters,edges):
     return out
 
 
-def hierarchical_match(query,reference,dc=3.,neighbor_ratio=.85,top_h=12,
-                        min_similarity=.5,lambda_angle=1.,lambda_ratio=1.):
+def hierarchical_match(query, reference,
+    dc=3.,
+    neighbor_ratio=.85,
+    top_h=12,
+    min_similarity=.5,
+    lambda_angle=1.,
+    lambda_ratio=1.,
+    semantic_mode="soft",
+    alpha_sem=.15):
     """Apply the manuscript's two-layer hierarchical matching independently.
     Returns (query_index, reference_index, score, layer) correspondences.
     Sparse two-node/isolated structures are retained as edges/anchors and can
@@ -214,7 +246,18 @@ def hierarchical_match(query,reference,dc=3.,neighbor_ratio=.85,top_h=12,
     """
     final=[]
     for layer in ('semantic','structural'):
-        q=[n for n in query if n.layer==layer]; r=[n for n in reference if n.layer==layer]
+        q_indices = [
+            i for i, n in enumerate(query)
+            if n.layer == layer
+        ]
+
+        r_indices = [
+            j for j, n in enumerate(reference)
+            if n.layer == layer
+        ]
+
+        q = [query[i] for i in q_indices]
+        r = [reference[j] for j in r_indices]
         if len(q)<1 or len(r)<1: continue
         _,qc,qi,qe=_cluster_graph(q,dc,neighbor_ratio); _,rc,ri,re=_cluster_graph(r,dc,neighbor_ratio)
         qt=_triangles(q,qc,qe); rt=_triangles(r,rc,re)
@@ -228,10 +271,39 @@ def hierarchical_match(query,reference,dc=3.,neighbor_ratio=.85,top_h=12,
                     qids=qtri.vertices
                     for rtri in rtris:
                         for perm in permutations(rtri.vertices):
-                            if not all(q[i].code==r[j].code for i,j in zip(qids,perm)): continue
-                            rd=triangle_descriptor([r[j].xyz for j in perm])
-                            score=triangle_similarity(qtri.descriptor,rd,lambda_angle,lambda_ratio)
-                            if score>=min_similarity: cand.append((score,qids,perm))
+                            if not all(node_compatible(q[i], r[j], semantic_mode)for i, j in zip(qids, perm)):
+                                continue
+
+                            rd = triangle_descriptor(
+                                [r[j].xyz for j in perm]
+                            )
+
+                            geo_score = triangle_similarity(
+                                qtri.descriptor,
+                                rd,
+                                lambda_angle,
+                                lambda_ratio
+                            )
+
+                            # Geometry determines admissibility.
+                            if geo_score < min_similarity:
+                                continue
+
+                            score = geo_score
+
+                            # Semantics only influences ranking.
+                            if layer == "structural" and semantic_mode == "soft":
+                                agreement = np.mean([
+                                    q[i].category >= 0 and
+                                    q[i].category == r[j].category
+                                    for i, j in zip(qids, perm)
+                            ])
+
+                                score *= (
+                                    1.0 - alpha_sem * (1.0 - agreement)
+                                )
+
+                            cand.append((score, qids, perm))
                 cand=sorted(cand,key=lambda x:x[0],reverse=True)[:top_h]
                 if cand: cluster_scores.append((sum(x[0] for x in cand),rci,cand))
             if cluster_scores:
@@ -254,16 +326,43 @@ def hierarchical_match(query,reference,dc=3.,neighbor_ratio=.85,top_h=12,
                 opts=[]
                 for rci in allowed_ref_clusters:
                     for j in rc[rci]:
-                        if j in used or q[i].code!=r[j].code: continue
+                        if j in used:
+                            continue
+
+                        if not node_compatible(
+                            q[i], r[j], semantic_mode
+                        ):
+                            continue
                         errs=[]
                         for a in support:
                             ja=chosen[a][0]
                             errs.append(abs(np.linalg.norm(np.asarray(q[i].xyz)-q[a].xyz)-np.linalg.norm(np.asarray(r[j].xyz)-r[ja].xyz)))
-                        score=float(np.exp(-np.mean(errs)/max(dc,1e-6)))
-                        if score>=min_similarity: opts.append((score,j))
+                        geo_score = float(np.exp(
+                            -np.mean(errs) / max(dc, 1e-6)
+                        ))
+
+                        if geo_score < min_similarity:
+                            continue
+
+                        score = geo_score
+
+                        if layer == "structural" and semantic_mode == "soft":
+                            score *= semantic_prior(
+                            q[i], r[j], alpha_sem
+                        )
+
+                        opts.append((score, j))
                 if opts:
                     score,j=max(opts); chosen[i]=(j,score,layer); used.add(j)
-        final.extend((i,j,s,l) for i,(j,s,l) in chosen.items())
+        final.extend(
+            (
+                q_indices[i],
+                r_indices[j],
+                s,
+                l
+            )
+            for i, (j, s, l) in chosen.items()
+        )
     # Deduplicate by layer and query index; retain highest score.
     best={}
     for i,j,s,l in final:
